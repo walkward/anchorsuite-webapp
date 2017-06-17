@@ -1,0 +1,45 @@
+#cloud-config
+coreos:
+  update:
+    reboot-strategy: "etcd-lock"
+  units:
+    - name: docker.service
+      drop-ins:
+        - name: 10-debug.conf
+          content: |
+            [Service]
+            Environment=DOCKER_OPTS=--debug
+      command: restart
+    - name: cloudservice.service
+      command: start
+      content: |
+        [Unit]
+        Description=Anchorsuite webapp docker container
+        Requires=docker.service
+        After=docker.service
+
+        [Service]
+        Restart=always
+        Environment="HOME=/home/walker"
+        ExecStartPre=/home/walker/odoo/config/dockercfg_update.sh
+        ExecStart=/usr/bin/docker run -e HOST=104.199.125.171 -e POSTGRES_USER=anchorsuite_user -e POSTGRES_PASSWORD=anchorsuite_password -v /home/walker/odoo/config:/etc/odoo -p 80:8069 -p 443:8071 --name anchorsuite-container -t gcr.io/anchorsuite/anchorsuite-webapp:latest
+        ExecStop=/usr/bin/docker stop anchorsuite-container
+        ExecStopPost=/usr/bin/docker rm anchorsuite-container
+
+# This is the local part of a fully-qualified domain name (i.e. foo in foo.example.com).
+# hostname: "app"
+
+users:
+  - name: core
+    ssh-authorized-keys:
+      - "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDJcfwzJLWiVHRU4v3avTk/m37GDGNGZGrnubuSh1RMYurlCwt01CGzuFTbGI5qa/jbQTbb6jiXo9Xkg953GDgM6HJLIzfIlHgj0BR0gm6zp1weQFi3T0MNoy6xymIW+K9EtD2awbYXc1sYueJYzmpfBz7ec4lTT/hFl1obiH0y7ZSKjz1yHkk/Dz+Xj597d7MDFeEIR6QmdlRVC4X1BywQ8KuvjX7UYbT887QhSnaGH4hMUtHX7LpC3+2cvc2c/VTq2Qh8MnHWXjfXFjsb4TN5+9sAng6OLDfPmmeXaYI+z02oJoTN/8HJOsgRnANh78K1KLdr/Com+Dxy+WHtcHI5 walker"
+  - name: walker
+    ssh-authorized-keys:
+      - "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDJcfwzJLWiVHRU4v3avTk/m37GDGNGZGrnubuSh1RMYurlCwt01CGzuFTbGI5qa/jbQTbb6jiXo9Xkg953GDgM6HJLIzfIlHgj0BR0gm6zp1weQFi3T0MNoy6xymIW+K9EtD2awbYXc1sYueJYzmpfBz7ec4lTT/hFl1obiH0y7ZSKjz1yHkk/Dz+Xj597d7MDFeEIR6QmdlRVC4X1BywQ8KuvjX7UYbT887QhSnaGH4hMUtHX7LpC3+2cvc2c/VTq2Qh8MnHWXjfXFjsb4TN5+9sAng6OLDfPmmeXaYI+z02oJoTN/8HJOsgRnANh78K1KLdr/Com+Dxy+WHtcHI5 walker"
+
+  # Read service logs with:
+  # -$ sudo journalctl -u cloudservice.service -f
+  # Read all logs with:
+  # -$ sudo journalctl -f
+  # List all enabled services
+  # -$ sudo systemctl list-unit-files | grep enabled

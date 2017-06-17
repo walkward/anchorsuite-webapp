@@ -1,0 +1,40 @@
+{
+  "name": "anchorsuite-docker",
+  "version": "1.0.20",
+  "repository": "https://github.com/walkward/anchorsuite-webapp",
+  "config": {
+    "gcloud_configuration": "anchorsuite-webapp-config",
+    "gcloud_project": "anchorsuite",
+    "gcloud_account": "walker.ward1@gmail.com",
+    "gcloud_cluster": "anchorsuite-cluster",
+    "gcloud_network": "anchorsuite-network",
+    "gcloud_postgres_db": "anchorsuite_db",
+    "gcloud_postgres_user": "anchorsuite_user",
+    "gcloud_postgres_password": "anchorsuite_password",
+    "gcloud_postgres_host": "104.199.125.171",
+    "gcloud_instance": "anchorsuite-webapp-instance",
+    "gcloud_container": "anchorsuite-container",
+    "gcloud_zone": "us-central1-b",
+    "image_name": "anchorsuite-webapp"
+  },
+  "scripts": {
+    "docker-start": "docker start -a $npm_package_config_gcloud_container",
+    "docker-stop": "docker stop $npm_package_config_gcloud_container",
+    "docker-build": "./bin/docker-build.sh",
+    "docker-run": "docker run -e HOST=$npm_package_config_gcloud_postgres_host -e POSTGRES_USER=$npm_package_config_gcloud_postgres_user -e POSTGRES_PASSWORD=$npm_package_config_gcloud_postgres_password -v /Users/walker/Desktop/anchorsuite-docker/config:/etc/odoo -p 80:8069 -p 443:8071 --name $npm_package_config_gcloud_container -t walkward/$npm_package_config_image_name:v$npm_package_version;",
+    "connect-instance": "gcloud compute ssh $npm_package_config_gcloud_instance --project=$npm_package_config_gcloud_project --zone=$npm_package_config_gcloud_zone",
+    "connect-psql": "gcloud beta sql connect $npm_package_config_gcloud_postgres_db --user=$npm_package_config_gcloud_postgres_user",
+    "update-instance": "./bin/update-instance.sh",
+    "gcloud-config": "./bin/gcloud-config.sh",
+    "deploy-dev": "gcloud app deploy dev.yaml",
+    "deploy": "gcloud app deploy"
+  },
+  "engines": {
+    "node": ">=4.3.2"
+  },
+  "devDependencies": {
+    "opn": "^5.1.0",
+    "shelljs": "^0.7.8"
+  },
+  "private": true
+}
